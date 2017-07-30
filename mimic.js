@@ -76,6 +76,7 @@ function onReset() {
 
   // TODO(optional): You can restart the game as well
   // <your code here>
+  startGame();
 };
 
 // Add a callback to notify when camera access is allowed
@@ -135,6 +136,7 @@ detector.addEventListener("onImageResultsSuccess", function (faces, image, times
 
     // TODO: Call your function to run the game (define it first!)
     // <your code here>
+    notifyEmojiUpdate(faces[0].emojis.dominantEmoji);
   }
 });
 
@@ -191,3 +193,52 @@ function drawEmoji(canvas, img, face) {
 // - Define a game reset function (same as init?), and call it from the onReset() function above
 
 // <your code here>
+var gameLength = 10,
+  currentEmoji,
+  currentScore = 0,
+  targetEmojis,
+  isNewRound;
+
+function generateRandomTargetEmoji(gameLen) {
+  var gameEmojis = [];
+  for (var i = 0; i < gameLen; i++) {
+    gameEmojis.push(emojis[Math.floor(Math.random() * emojis.length)]);
+  }
+  return gameEmojis;
+}
+
+function startGame() {
+  isNewRound = true;
+  currentScore = 0;
+  targetEmojis = generateRandomTargetEmoji(gameLength);
+  setScore(currentScore, gameLength);
+  nextRound();
+}
+
+function nextRound() {
+  var timer;
+  if (targetEmojis.length > 0) {
+    currentEmoji = targetEmojis.pop();
+    console.log('new emoji ', currentEmoji);
+    setTargetEmoji(currentEmoji);
+    isNewRound = true;
+    timer = setTimeout(function () {
+      nextRound();
+    }, 2 * 1000);
+  } else {
+    endGame();
+  }
+}
+
+function notifyEmojiUpdate(newEmoji) {
+  if (isNewRound && toUnicode(newEmoji) === currentEmoji) {
+    isNewRound = false;
+    setScore(++currentScore, gameLength);
+    nextRound();
+  }
+}
+
+function endGame() {
+  setScore(currentScore, gameLength);
+  $("#score").html($("#score").html() + ' Game over.');
+}
